@@ -1,3 +1,5 @@
+import json
+from pypdf import PdfReader
 import re
 from pathlib import Path
 from typing import Any
@@ -7,7 +9,8 @@ from sentence_transformers import SentenceTransformer, util
 from checklist import load_checklist, get_total_weight
 
 
-CONTRACT_PATH = Path("data/sample_contracts/sample_arabic_contract.txt")
+CONTRACT_PATH = Path("data/contracts/sample_arabic_contract.pdf")
+OUTPUT_PATH = Path("data/analysis_result.json")
 
 MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
 
@@ -17,13 +20,26 @@ PARTIAL_THRESHOLD = 0.48
 
 def read_contract(path: Path) -> str:
     """
-    Read Arabic contract text from a TXT file.
+    Read Arabic contract text from TXT or PDF file.
     """
     if not path.exists():
         raise FileNotFoundError(f"Contract file not found: {path}")
 
-    with path.open("r", encoding="utf-8") as file:
-        return file.read()
+    if path.suffix.lower() == ".txt":
+        with path.open("r", encoding="utf-8") as file:
+            return file.read()
+
+    if path.suffix.lower() == ".pdf":
+        reader = PdfReader(str(path))
+        pages_text = []
+
+        for page in reader.pages:
+            text = page.extract_text() or ""
+            pages_text.append(text)
+
+        return "\n".join(pages_text)
+
+    raise ValueError("Unsupported contract file type. Use .txt or .pdf")
 
 
 def split_contract_into_clauses(contract_text: str) -> list[str]:
@@ -157,11 +173,33 @@ def analyze_contract_semantic(contract_path: Path) -> None:
         achieved_score += result["score"]
 
     compliance_percentage = (achieved_score / total_weight) * 100
+    compliant_count = sum(1 for result in results if result["status"] == "Compliant")
+    partial_count = sum(1 for result in results if result["status"] == "Partial")
+    missing_count = sum(1 for result in results if result["status"] == "Missing")
+
+    analysis_output = {
+        "contract_file": str(contract_path),
+        "score": achieved_score,
+        "total_weight": total_weight,
+        "compliance_percentage": round(compliance_percentage, 2),
+        "summary": {
+            "compliant": compliant_count,
+            "partial": partial_count,
+            "missing": missing_count
+        },
+        "results": results
+    }
+
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    with OUTPUT_PATH.open("w", encoding="utf-8") as file:
+        json.dump(analysis_output, file, ensure_ascii=False, indent=2)
 
     print("\nنتيجة تحليل العقد بالمعنى")
     print("=" * 80)
     print(f"الدرجة: {achieved_score} / {total_weight}")
     print(f"نسبة الامتثال: {compliance_percentage:.2f}%")
+    print(f"تم حفظ النتيجة في: {OUTPUT_PATH}")
     print("=" * 80)
 
     for result in results:
