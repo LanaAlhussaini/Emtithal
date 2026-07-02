@@ -9,12 +9,11 @@ COLLECTION_NAME = "sama_regulations"
 MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
 
 
-def get_model() -> SentenceTransformer:
-    """
-    Load the multilingual embedding model.
-    This model supports Arabic and English semantic search.
-    """
-    return SentenceTransformer(MODEL_NAME)
+print("Loading embedding model once...")
+MODEL = SentenceTransformer(MODEL_NAME)
+
+def get_model():
+    return MODEL
 
 
 def get_collection():
