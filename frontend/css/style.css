@@ -256,7 +256,7 @@ a {
   font-weight: 800;
 }
 
-.score-panel span {
+.score-panel  .score-date  {
   display: block;
   margin-top: 8px;
   color: var(--text-muted);
