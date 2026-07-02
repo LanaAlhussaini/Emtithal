@@ -6,13 +6,16 @@ from typing import Any
 
 from sentence_transformers import SentenceTransformer, util
 
-from checklist import load_checklist, get_total_weight
+from src.checklist import load_checklist, get_total_weight
 
 
 CONTRACT_PATH = Path("data/contracts/sample_arabic_contract.pdf")
 OUTPUT_PATH = Path("data/analysis_result.json")
 
 MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
+
+print("Loading semantic model once...")
+MODEL = SentenceTransformer(MODEL_NAME)
 
 COMPLIANT_THRESHOLD = 0.62
 PARTIAL_THRESHOLD = 0.48
@@ -153,7 +156,7 @@ def analyze_contract_semantic(contract_path: Path) -> None:
 
     print(f"عدد فقرات العقد المستخرجة: {len(clauses)}")
     print("تحميل مودل المعاني...")
-    model = SentenceTransformer(MODEL_NAME)
+    model = MODEL
 
     print("تحويل فقرات العقد إلى embeddings...")
     clause_embeddings = model.encode(clauses, convert_to_tensor=True)
