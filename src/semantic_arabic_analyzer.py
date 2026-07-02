@@ -1,4 +1,6 @@
 import json
+from pyexpat import model
+import unicodedata
 from pypdf import PdfReader
 import re
 from pathlib import Path
@@ -14,6 +16,91 @@ OUTPUT_PATH = Path("data/analysis_result.json")
 
 MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
 
+def normalize_arabic_text(text: str) -> str:
+    """
+    Normalize Arabic text extracted from PDFs.
+    This fixes presentation-form Arabic letters like ﻋﻘﺪ into normal Arabic عقد.
+    """
+    text = unicodedata.normalize("NFKC", text)
+
+    # Remove Arabic diacritics
+    text = re.sub(r"[\u064B-\u065F\u0670]", "", text)
+
+    # Normalize common Arabic letter variants
+    text = text.replace("أ", "ا").replace("إ", "ا").replace("آ", "ا")
+    text = text.replace("ى", "ي")
+    text = text.replace("ة", "ه")
+
+    # Normalize spacing
+    text = re.sub(r"\s+", " ", text)
+
+    return text.strip()
+
+def normalize_for_matching(text: str) -> str:
+    """
+    Extra normalization for keyword matching.
+    """
+    text = normalize_arabic_text(text)
+    text = re.sub(r"[^\w\s]", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
+def light_stem_arabic_word(word: str) -> str:
+    """
+    Very simple Arabic light stemming to reduce keyword mismatch.
+    Example: البيانات / للبيانات -> بيانات
+    """
+    prefixes = ["وال", "بال", "كال", "فال", "لل", "ال", "و", "ف", "ب", "ك", "ل"]
+    suffixes = ["هما", "كما", "نا", "ها", "هم", "كم", "ات", "ون", "ين", "ان", "ه", "ي"]
+
+    for prefix in prefixes:
+        if len(word) > len(prefix) + 3 and word.startswith(prefix):
+            word = word[len(prefix):]
+            break
+
+    for suffix in suffixes:
+        if len(word) > len(suffix) + 3 and word.endswith(suffix):
+            word = word[:-len(suffix)]
+            break
+
+    return word
+
+
+def keyword_matches_clause(keyword: str, clause: str) -> bool:
+    """
+    Match keyword phrase against clause using normalized phrase + token matching.
+    """
+    keyword_norm = normalize_for_matching(keyword)
+    clause_norm = normalize_for_matching(clause)
+
+    if keyword_norm in clause_norm:
+        return True
+
+    keyword_tokens = [token for token in keyword_norm.split() if len(token) >= 3]
+    clause_tokens = [token for token in clause_norm.split() if len(token) >= 3]
+
+    clause_stems = {light_stem_arabic_word(token) for token in clause_tokens}
+
+    matched = 0
+
+    for token in keyword_tokens:
+        stem = light_stem_arabic_word(token)
+
+        if token in clause_tokens or stem in clause_stems:
+            matched += 1
+            continue
+
+        for clause_stem in clause_stems:
+            if len(stem) >= 4 and (stem in clause_stem or clause_stem in stem):
+                matched += 1
+                break
+
+    if not keyword_tokens:
+        return False
+
+    required_matches = max(1, int(len(keyword_tokens) * 0.7))
+    return matched >= required_matches
 print("Loading semantic model once...")
 MODEL = SentenceTransformer(MODEL_NAME)
 
@@ -30,7 +117,7 @@ def read_contract(path: Path) -> str:
 
     if path.suffix.lower() == ".txt":
         with path.open("r", encoding="utf-8") as file:
-            return file.read()
+            return normalize_arabic_text(file.read())
 
     if path.suffix.lower() == ".pdf":
         reader = PdfReader(str(path))
@@ -40,27 +127,31 @@ def read_contract(path: Path) -> str:
             text = page.extract_text() or ""
             pages_text.append(text)
 
-        return "\n".join(pages_text)
+        full_text = "\n".join(pages_text)
+        return normalize_arabic_text(full_text)
 
     raise ValueError("Unsupported contract file type. Use .txt or .pdf")
 
-
 def split_contract_into_clauses(contract_text: str) -> list[str]:
     """
-    Split Arabic contract into smaller clauses/paragraphs.
+    Split Arabic contract into clauses.
+    Supports contracts written with المادة or البند.
     """
-    # نقسم على السطور الفارغة أو النقاط أو الفواصل الطويلة
-    raw_parts = re.split(r"\n+|\.|؛", contract_text)
+    text = normalize_arabic_text(contract_text)
+
+    # Add a separator before common legal clause markers
+    text = re.sub(r"\s+(?=(البند|الماده)\s*:?\s*\d*)", "\n", text)
+
+    raw_parts = re.split(r"\n+|(?=البند\s*:?\s*\d*)|(?=الماده\s*:?\s*\d*)", text)
 
     clauses = []
 
     for part in raw_parts:
         cleaned = part.strip()
-        if len(cleaned) >= 20:
+        if len(cleaned) >= 25:
             clauses.append(cleaned)
 
     return clauses
-
 
 def build_requirement_query(requirement: dict[str, Any]) -> str:
     """
@@ -83,45 +174,56 @@ def analyze_requirement_semantic(
     clause_embeddings
 ) -> dict[str, Any]:
     """
-    Analyze one requirement using hybrid semantic similarity + Arabic keywords.
+    Analyze one requirement using semantic similarity + fuzzy keyword boosting.
     """
-    requirement_query = build_requirement_query(requirement)
+
+    requirement_query = normalize_arabic_text(build_requirement_query(requirement))
     requirement_embedding = model.encode(requirement_query, convert_to_tensor=True)
 
     similarities = util.cos_sim(requirement_embedding, clause_embeddings)[0]
 
-    best_index = int(similarities.argmax())
-    best_score = float(similarities[best_index])
-    best_clause = clauses[best_index]
+    original_keywords = requirement["keywords_ar"]
 
-    keywords = requirement["keywords_ar"]
-    matched_keywords = []
+    best_score = 0
+    best_clause = ""
+    best_matched_keywords = []
+    best_combined_score = -1
 
-    for keyword in keywords:
-        if keyword in best_clause:
-            matched_keywords.append(keyword)
+    for index, clause in enumerate(clauses):
+        matched_keywords = []
 
-    keyword_count = len(matched_keywords)
+        for keyword in original_keywords:
+            if keyword_matches_clause(keyword, clause):
+                matched_keywords.append(keyword)
 
-    # Hybrid decision:
-    # 1. High semantic similarity + at least 1 keyword = Compliant
-    # 2. Medium semantic similarity + at least 1 keyword = Partial
-    # 3. Very high semantic similarity without keyword = Partial only
-    # 4. Otherwise Missing
+        semantic_score = float(similarities[index])
+        keyword_count = len(matched_keywords)
 
-    if best_score >= COMPLIANT_THRESHOLD and keyword_count >= 1:
+        # Boost clauses that contain real legal signals
+        keyword_boost = min(keyword_count * 0.12, 0.36)
+        combined_score = semantic_score + keyword_boost
+
+        if combined_score > best_combined_score:
+            best_combined_score = combined_score
+            best_score = semantic_score
+            best_clause = clause
+            best_matched_keywords = matched_keywords
+
+    keyword_count = len(best_matched_keywords)
+
+    if keyword_count >= 2 and best_score >= 0.40:
         status = "Compliant"
         score = requirement["weight"]
 
-    elif best_score >= 0.55 and keyword_count >= 2:
+    elif keyword_count >= 1 and best_score >= 0.52:
         status = "Compliant"
         score = requirement["weight"]
 
-    elif best_score >= PARTIAL_THRESHOLD and keyword_count >= 1:
+    elif keyword_count >= 1 and best_score >= 0.40:
         status = "Partial"
         score = requirement["weight"] * 0.5
 
-    elif best_score >= 0.70:
+    elif best_score >= 0.74:
         status = "Partial"
         score = requirement["weight"] * 0.5
 
@@ -138,7 +240,7 @@ def analyze_requirement_semantic(
         "score": score,
         "similarity": round(best_score, 3),
         "best_clause": best_clause,
-        "matched_keywords": matched_keywords,
+        "matched_keywords": best_matched_keywords,
         "recommendation": requirement["recommended_clause_ar"]
     }
 
@@ -149,6 +251,10 @@ def analyze_contract_semantic(contract_path: Path) -> None:
     """
     checklist = load_checklist()
     contract_text = read_contract(contract_path)
+
+    print("EXTRACTED TEXT PREVIEW:")
+    print(contract_text[:1000])
+
     clauses = split_contract_into_clauses(contract_text)
 
     if not clauses:

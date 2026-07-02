@@ -6,6 +6,7 @@ from src.rag_retriever import retrieve_sama_evidence
 
 def run_pipeline(contract_path: str | Path) -> dict:
     contract_path = Path(contract_path)
+    print("Analyzing uploaded file:", contract_path)
 
     analyze_contract_semantic(contract_path)
 
