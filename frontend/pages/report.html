@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="تقرير امتثال عقد إسناد خارجي مقابل متطلبات تعليمات SAMA."
+    />
+    <title>امتثال | تقرير الامتثال</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/variables.css" />
+    <link rel="stylesheet" href="../css/components.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <header class="site-header" data-header>
+      <nav class="navbar container" aria-label="التنقل الرئيسي">
+        <a class="brand" href="../index.html" aria-label="امتثال">
+          <img src="../assets/logo.png" alt="" class="brand__mark" />
+          <span class="brand__name">امتثال</span>
+        </a>
+
+        <button class="nav-toggle" type="button" aria-label="فتح القائمة" aria-expanded="false" data-nav-toggle>
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div class="nav-menu" data-nav-menu>
+          <a href="../index.html">الرئيسية</a>
+          <a href="../index.html#features">المزايا</a>
+          <a href="../index.html#how-it-works">كيف يعمل</a>
+          <a href="../index.html#contact">تواصل معنا</a>
+        </div>
+
+        <a class="btn btn--primary navbar__cta" href="upload.html">مراجعة عقد آخر</a>
+      </nav>
+    </header>
+
+    <main class="report-page">
+      <section class="section report-hero">
+        <div class="container report-hero__grid">
+          <div class="page-header reveal">
+            <p class="eyebrow">نتائج التحليل</p>
+            <h1>تقرير الامتثال</h1>
+            <p>
+              نتائج فحص العقد مقابل متطلبات تعليمات SAMA لإسناد المهام إلى طرف ثالث.
+            </p>
+          </div>
+
+          <div class="report-actions reveal">
+            <button class="btn btn--primary" type="button" data-print-report>تحميل التقرير PDF</button>
+            <button class="btn btn--secondary" type="button" data-open-contract>فتح العقد</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="report-content" id="detailed-report">
+        <div class="container">
+          <div class="summary-grid reveal" aria-label="ملخص الامتثال">
+            <article class="score-card score-card--main">
+              <span>Overall Compliance Score</span>
+              <strong>82%</strong>
+              <p>الحالة العامة: يحتاج مراجعة</p>
+            </article>
+            <article class="score-card score-card--success">
+              <span>متطلبات متوافقة</span>
+              <strong>18</strong>
+            </article>
+            <article class="score-card score-card--warning">
+              <span>تحتاج مراجعة</span>
+              <strong>4</strong>
+            </article>
+            <article class="score-card score-card--danger">
+              <span>غير متوافقة</span>
+              <strong>2</strong>
+            </article>
+          </div>
+
+          <section class="report-card contract-info-card reveal" aria-labelledby="contract-info-title">
+            <div class="report-section-head">
+              <div>
+                <p class="eyebrow">بيانات العقد</p>
+                <h2 id="contract-info-title">معلومات التحليل</h2>
+              </div>
+              <span class="status-pill status-pill--warning">يحتاج مراجعة</span>
+            </div>
+
+            <dl class="contract-info-list">
+              <div>
+                <dt>اسم العقد</dt>
+                <dd>عقد خدمات تقنية المعلومات</dd>
+              </div>
+              <div>
+                <dt>نوع العقد</dt>
+                <dd>عقد إسناد خارجي</dd>
+              </div>
+              <div>
+                <dt>الجهة التنظيمية</dt>
+                <dd>SAMA</dd>
+              </div>
+              <div>
+                <dt>تاريخ التحليل</dt>
+                <dd>12 مايو 2024</dd>
+              </div>
+              <div>
+                <dt>الحالة العامة</dt>
+                <dd>يحتاج مراجعة</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="report-card findings-section reveal" aria-labelledby="findings-title">
+            <div class="report-section-head">
+              <div>
+                <p class="eyebrow">تفاصيل الفحص</p>
+                <h2 id="findings-title">نتائج متطلبات الامتثال</h2>
+              </div>
+            </div>
+
+            <div class="findings-list">
+              <article class="finding-item">
+                <div class="finding-item__top">
+                  <div>
+                    <span class="article-number">المادة 18</span>
+                    <h3>نطاق العقد</h3>
+                  </div>
+                  <span class="status-pill status-pill--success">متوافق</span>
+                </div>
+                <div class="finding-item__body">
+                  <div>
+                    <h4>Evidence / Notes</h4>
+                    <p>تم تحديد نطاق الخدمات بوضوح داخل العقد.</p>
+                  </div>
+                  <div>
+                    <h4>Recommendation</h4>
+                    <p>لا يوجد إجراء مطلوب.</p>
+                  </div>
+                </div>
+              </article>
+
+              <article class="finding-item">
+                <div class="finding-item__top">
+                  <div>
+                    <span class="article-number">المادة 18</span>
+                    <h3>مستوى الخدمة SLA</h3>
+                  </div>
+                  <span class="status-pill status-pill--success">متوافق</span>
+                </div>
+                <div class="finding-item__body">
+                  <div>
+                    <h4>Evidence / Notes</h4>
+                    <p>يحتوي العقد على مؤشرات أداء ومستويات خدمة.</p>
+                  </div>
+                  <div>
+                    <h4>Recommendation</h4>
+                    <p>لا يوجد إجراء مطلوب.</p>
+                  </div>
+                </div>
+              </article>
+
+              <article class="finding-item">
+                <div class="finding-item__top">
+                  <div>
+                    <span class="article-number">المادة 18</span>
+                    <h3>خطة استمرارية الأعمال</h3>
+                  </div>
+                  <span class="status-pill status-pill--warning">يحتاج مراجعة</span>
+                </div>
+                <div class="finding-item__body">
+                  <div>
+                    <h4>Evidence / Notes</h4>
+                    <p>يوجد ذكر عام لاستمرارية الأعمال دون توضيح خطة تفصيلية.</p>
+                  </div>
+                  <div>
+                    <h4>Recommendation</h4>
+                    <p>إضافة بند يوضح خطة الطوارئ وآلية استمرارية الخدمة عند تعطل مزود الخدمة.</p>
+                  </div>
+                </div>
+              </article>
+
+              <article class="finding-item">
+                <div class="finding-item__top">
+                  <div>
+                    <span class="article-number">المادة 20</span>
+                    <h3>حق SAMA في الوصول</h3>
+                  </div>
+                  <span class="status-pill status-pill--danger">غير متوافق</span>
+                </div>
+                <div class="finding-item__body">
+                  <div>
+                    <h4>Evidence / Notes</h4>
+                    <p>لم يتم العثور على بند يمنح SAMA حق الوصول إلى الوثائق والسجلات ذات العلاقة.</p>
+                  </div>
+                  <div>
+                    <h4>Recommendation</h4>
+                    <p>
+                      إضافة بند صريح يمنح SAMA والمراجعين الداخليين والخارجيين حق الوصول للوثائق
+                      والسجلات المرتبطة بترتيب الإسناد.
+                    </p>
+                  </div>
+                </div>
+              </article>
+
+              <article class="finding-item">
+                <div class="finding-item__top">
+                  <div>
+                    <span class="article-number">المادة 18</span>
+                    <h3>السرية والخصوصية وأمن المعلومات</h3>
+                  </div>
+                  <span class="status-pill status-pill--success">متوافق</span>
+                </div>
+                <div class="finding-item__body">
+                  <div>
+                    <h4>Evidence / Notes</h4>
+                    <p>يتضمن العقد بندًا للسرية وحماية المعلومات.</p>
+                  </div>
+                  <div>
+                    <h4>Recommendation</h4>
+                    <p>يفضل تعزيز البند بذكر بيانات العملاء والبيانات المالية بشكل صريح.</p>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="report-card recommendations-card reveal" aria-labelledby="recommendations-title">
+            <p class="eyebrow">ملخص تنفيذي</p>
+            <h2 id="recommendations-title">التوصيات النهائية</h2>
+            <p>
+              قبل اعتماد العقد، يوصى بمراجعة البنود عالية الخطورة، خصوصًا بند حق SAMA في الوصول
+              وخطة استمرارية الأعمال، لضمان توافق العقد مع متطلبات تعليمات إسناد المهام إلى طرف ثالث.
+            </p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div class="contract-modal" data-contract-modal hidden>
+      <section class="contract-modal__panel" role="dialog" aria-modal="true" aria-labelledby="contract-modal-title">
+        <button class="contract-modal__close" type="button" data-close-contract aria-label="إغلاق">×</button>
+        <p class="eyebrow">معاينة العقد</p>
+        <h2 id="contract-modal-title">العقد المرفوع</h2>
+        <p>سيتم عرض ملف العقد هنا عند ربط النظام بالمعالجة الفعلية.</p>
+        <button class="btn btn--primary" type="button" data-close-contract>إغلاق</button>
+      </section>
+    </div>
+
+    <script src="../js/animations.js"></script>
+    <script src="../js/main.js"></script>
+  </body>
+</html>
